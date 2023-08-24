@@ -2,12 +2,15 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/qwark97/go-versatility-presentation/hub/configuration/model"
 )
 
 const (
@@ -27,15 +30,17 @@ var (
 	readDataSourcePath      = path.Join(apiPath, "data-source/{id}")
 )
 
-type ConfigurationService interface{}
+type ConfigurationService interface {
+	AllConfigurations(ctx context.Context) ([]model.ConfigurationEntity, error)
+	AddNewConfiguration(ctx context.Context, configuration model.ConfigurationEntity) error
+}
 type SchedulerService interface{}
 type Conf interface {
 	Addr() string
+	RequestTimeout() time.Duration
 }
 
 type Server struct {
-	ctx context.Context
-
 	confService  ConfigurationService
 	schedService SchedulerService
 
@@ -43,9 +48,8 @@ type Server struct {
 	log  *slog.Logger
 }
 
-func New(ctx context.Context, confService ConfigurationService, schedService SchedulerService, conf Conf, log *slog.Logger) Server {
+func New(confService ConfigurationService, schedService SchedulerService, conf Conf, log *slog.Logger) Server {
 	return Server{
-		ctx:          ctx,
 		confService:  confService,
 		schedService: schedService,
 		conf:         conf,
@@ -78,11 +82,45 @@ func (s Server) addEndpoint(mux *mux.Router, path string, handler func(http.Resp
 }
 
 func (s Server) getConfigurations(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 
+	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
+	defer cancel()
+
+	configurations, err := s.confService.AllConfigurations(ctx)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to get all configurations: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(configurations)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to send response: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
+	defer cancel()
 
+	var configuration model.ConfigurationEntity
+	err := json.NewDecoder(r.Body).Decode(&configuration)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to read request body: %v", err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = s.confService.AddNewConfiguration(ctx, configuration)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to add new configration entity: %v", err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s Server) getConfiguration(w http.ResponseWriter, r *http.Request) {

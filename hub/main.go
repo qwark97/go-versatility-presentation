@@ -5,8 +5,8 @@ import (
 
 	"log/slog"
 
-	"github.com/qwark97/go-versatility-presentation/hub/configuration"
 	"github.com/qwark97/go-versatility-presentation/hub/flags"
+	"github.com/qwark97/go-versatility-presentation/hub/peripherals"
 	"github.com/qwark97/go-versatility-presentation/hub/scheduler"
 	"github.com/qwark97/go-versatility-presentation/hub/server"
 )
@@ -19,10 +19,10 @@ func main() {
 
 	log := slog.Default()
 
-	confService := configuration.New(ctx, log)
-	schedService := scheduler.New(ctx, log)
+	p := peripherals.New(ctx, log)
+	s := scheduler.New(ctx, log)
 
-	httpServer := server.New(confService, schedService, flagsConf, log)
+	httpServer := server.New(p, s, flagsConf, log)
 	if err := httpServer.Start(); err != nil {
 		arg := slog.Any("error", err.Error())
 		log.Error("server failed", arg)

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/qwark97/go-versatility-presentation/hub/configuration/model"
+	"github.com/qwark97/go-versatility-presentation/hub/peripherals/model"
 )
 
 const (
@@ -30,30 +30,30 @@ var (
 	readDataSourcePath      = path.Join(apiPath, "data-source/{id}")
 )
 
-type ConfigurationService interface {
-	AllConfigurations(ctx context.Context) ([]model.ConfigurationEntity, error)
-	AddNewConfiguration(ctx context.Context, configuration model.ConfigurationEntity) error
+type Peripherals interface {
+	All(ctx context.Context) ([]model.Configuration, error)
+	Add(ctx context.Context, configuration model.Configuration) error
 }
-type SchedulerService interface{}
+type Scheduler interface{}
 type Conf interface {
 	Addr() string
 	RequestTimeout() time.Duration
 }
 
 type Server struct {
-	confService  ConfigurationService
-	schedService SchedulerService
+	peripherals Peripherals
+	scheduler   Scheduler
 
 	conf Conf
 	log  *slog.Logger
 }
 
-func New(confService ConfigurationService, schedService SchedulerService, conf Conf, log *slog.Logger) Server {
+func New(peripherals Peripherals, scheduler Scheduler, conf Conf, log *slog.Logger) Server {
 	return Server{
-		confService:  confService,
-		schedService: schedService,
-		conf:         conf,
-		log:          log,
+		peripherals: peripherals,
+		scheduler:   scheduler,
+		conf:        conf,
+		log:         log,
 	}
 }
 
@@ -66,7 +66,7 @@ func (s Server) Start() error {
 	s.addEndpoint(m, deleteConfigurationPath, s.deleteConfiguration, http.MethodDelete)
 	s.addEndpoint(m, getConfigurationsPath, s.getConfigurations, http.MethodGet)
 	s.addEndpoint(m, verifyConfigurationPath, s.verifyConfiguration, http.MethodGet)
-	s.addEndpoint(m, readDataSourcePath, s.readDataSource, http.MethodGet)
+	s.addEndpoint(m, readDataSourcePath, s.readData, http.MethodGet)
 
 	s.log.Info("starts listening on: " + s.conf.Addr())
 	return http.ListenAndServe(s.conf.Addr(), m)
@@ -87,7 +87,7 @@ func (s Server) getConfigurations(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
-	configurations, err := s.confService.AllConfigurations(ctx)
+	configurations, err := s.peripherals.All(ctx)
 	if err != nil {
 		s.log.Error(fmt.Sprintf("failed to get all configurations: %v", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -106,7 +106,7 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
-	var configuration model.ConfigurationEntity
+	var configuration model.Configuration
 	err := json.NewDecoder(r.Body).Decode(&configuration)
 	if err != nil {
 		s.log.Error(fmt.Sprintf("failed to read request body: %v", err))
@@ -114,7 +114,7 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.confService.AddNewConfiguration(ctx, configuration)
+	err = s.peripherals.Add(ctx, configuration)
 	if err != nil {
 		s.log.Error(fmt.Sprintf("failed to add new configration entity: %v", err))
 		w.WriteHeader(http.StatusBadRequest)
@@ -124,6 +124,9 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) getConfiguration(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	fmt.Println(id)
 }
 
 func (s Server) deleteConfiguration(w http.ResponseWriter, r *http.Request) {
@@ -138,6 +141,6 @@ func (s Server) reloadConfiguration(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (s Server) readDataSource(w http.ResponseWriter, r *http.Request) {
+func (s Server) readData(w http.ResponseWriter, r *http.Request) {
 
 }

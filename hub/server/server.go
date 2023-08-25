@@ -39,7 +39,7 @@ type Peripherals interface {
 	Verify(ctx context.Context, id uuid.UUID) (bool, error)
 	Reload(ctx context.Context) error
 }
-type Scheduler interface{}
+
 type Conf interface {
 	Addr() string
 	RequestTimeout() time.Duration
@@ -47,16 +47,14 @@ type Conf interface {
 
 type Server struct {
 	peripherals Peripherals
-	scheduler   Scheduler
 
 	conf Conf
 	log  *slog.Logger
 }
 
-func New(peripherals Peripherals, scheduler Scheduler, conf Conf, log *slog.Logger) Server {
+func New(peripherals Peripherals, conf Conf, log *slog.Logger) Server {
 	return Server{
 		peripherals: peripherals,
-		scheduler:   scheduler,
 		conf:        conf,
 		log:         log,
 	}

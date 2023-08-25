@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"log/slog"
 
@@ -19,10 +20,16 @@ func main() {
 
 	log := slog.Default()
 
-	p := peripherals.New(ctx, log)
 	s := scheduler.New(ctx, log)
+	go func() {
+		if err := s.Start(); err != nil {
+			log.Error(fmt.Sprintf("scheduler failed: %v", err))
+		}
+	}()
 
-	httpServer := server.New(p, s, flagsConf, log)
+	p := peripherals.New(ctx, s, log)
+
+	httpServer := server.New(p, flagsConf, log)
 	if err := httpServer.Start(); err != nil {
 		arg := slog.Any("error", err.Error())
 		log.Error("server failed", arg)

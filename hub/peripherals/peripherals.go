@@ -17,10 +17,12 @@ var stubbedConfs = []model.Configuration{
 	},
 }
 
+type Scheduler interface{}
+
 type Peripherals struct {
 }
 
-func New(ctx context.Context, log *slog.Logger) Peripherals {
+func New(ctx context.Context, scheduler Scheduler, log *slog.Logger) Peripherals {
 	return Peripherals{}
 }
 

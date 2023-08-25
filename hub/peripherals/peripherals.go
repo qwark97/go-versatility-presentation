@@ -24,12 +24,24 @@ func New(ctx context.Context, log *slog.Logger) Peripherals {
 	return Peripherals{}
 }
 
-func (c Peripherals) All(ctx context.Context) ([]model.Configuration, error) {
+func (p Peripherals) All(ctx context.Context) ([]model.Configuration, error) {
 	return stubbedConfs, nil
 }
 
-func (c Peripherals) Add(ctx context.Context, configuration model.Configuration) error {
+func (p Peripherals) Add(ctx context.Context, configuration model.Configuration) error {
 	configuration.ID = uuid.New()
 	stubbedConfs = append(stubbedConfs, configuration)
+	return nil
+}
+func (p Peripherals) ByID(ctx context.Context, id uuid.UUID) (model.Configuration, error) {
+	return model.Configuration{ID: id}, nil
+}
+func (p Peripherals) DeleteOne(ctx context.Context, id uuid.UUID) error {
+	return nil
+}
+func (p Peripherals) Verify(ctx context.Context, id uuid.UUID) (bool, error) {
+	return true, nil
+}
+func (p Peripherals) Reload(ctx context.Context) error {
 	return nil
 }

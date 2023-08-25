@@ -9,6 +9,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/qwark97/go-versatility-presentation/hub/peripherals/model"
 )
@@ -33,6 +34,10 @@ var (
 type Peripherals interface {
 	All(ctx context.Context) ([]model.Configuration, error)
 	Add(ctx context.Context, configuration model.Configuration) error
+	ByID(ctx context.Context, id uuid.UUID) (model.Configuration, error)
+	DeleteOne(ctx context.Context, id uuid.UUID) error
+	Verify(ctx context.Context, id uuid.UUID) (bool, error)
+	Reload(ctx context.Context) error
 }
 type Scheduler interface{}
 type Conf interface {
@@ -65,7 +70,7 @@ func (s Server) Start() error {
 	s.addEndpoint(m, getConfigurationPath, s.getConfiguration, http.MethodGet)
 	s.addEndpoint(m, deleteConfigurationPath, s.deleteConfiguration, http.MethodDelete)
 	s.addEndpoint(m, getConfigurationsPath, s.getConfigurations, http.MethodGet)
-	s.addEndpoint(m, verifyConfigurationPath, s.verifyConfiguration, http.MethodGet)
+	s.addEndpoint(m, verifyConfigurationPath, s.verifyConfiguration, http.MethodPost)
 	s.addEndpoint(m, readDataSourcePath, s.readData, http.MethodGet)
 
 	s.log.Info("starts listening on: " + s.conf.Addr())
@@ -120,25 +125,115 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (s Server) getConfiguration(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
+	defer cancel()
+
 	vars := mux.Vars(r)
-	id := vars["id"]
-	fmt.Println(id)
+	idVar := vars["id"]
+	id, err := uuid.Parse(idVar)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("invalid id: %v", err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	configuration, err := s.peripherals.ByID(ctx, id)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to get configuration: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if configuration.ID != id {
+		s.log.Info("failed to find configuration by ID: %s", id)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(configuration)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to send response: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s Server) deleteConfiguration(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
+	defer cancel()
 
+	vars := mux.Vars(r)
+	idVar := vars["id"]
+	id, err := uuid.Parse(idVar)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("invalid id: %v", err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = s.peripherals.DeleteOne(ctx, id)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to delete configuration: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s Server) verifyConfiguration(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 
+	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
+	defer cancel()
+
+	vars := mux.Vars(r)
+	idVar := vars["id"]
+	id, err := uuid.Parse(idVar)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("invalid id: %v", err))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	ok, err := s.peripherals.Verify(ctx, id)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to verify configuration: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Success bool `json:"success"`
+	}{}
+	response.Success = ok
+
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to send response: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (s Server) reloadConfiguration(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 
+	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
+	defer cancel()
+
+	err := s.peripherals.Reload(ctx)
+	if err != nil {
+		s.log.Error(fmt.Sprintf("failed to reload configurations: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s Server) readData(w http.ResponseWriter, r *http.Request) {

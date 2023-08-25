@@ -78,7 +78,11 @@ func (s Server) Start() error {
 }
 
 func (s Server) addEndpoint(mux *mux.Router, path string, handler func(http.ResponseWriter, *http.Request), methods ...string) {
-	mux.HandleFunc(path, handler).Methods(methods...)
+	mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "application/json")
+		s.log.Info(r.Method + " " + r.RequestURI)
+		handler(w, r)
+	}).Methods(methods...)
 
 	for _, m := range methods {
 		msg := fmt.Sprintf("registered handler for: %s %s", m, path)
@@ -87,8 +91,6 @@ func (s Server) addEndpoint(mux *mux.Router, path string, handler func(http.Resp
 }
 
 func (s Server) getConfigurations(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
@@ -129,8 +131,6 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) getConfiguration(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
@@ -187,8 +187,6 @@ func (s Server) deleteConfiguration(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) verifyConfiguration(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
@@ -222,8 +220,6 @@ func (s Server) verifyConfiguration(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) reloadConfiguration(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 

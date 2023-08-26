@@ -8,7 +8,7 @@ import (
 const (
 	defaultAddr       = "localhost:8080"
 	defaultReqTimeout = time.Duration(10 * time.Second)
-	defaultConfPath   = "~/.hub/peripherals.json"
+	defaultConfPath   = "./.hub/peripherals.json"
 )
 
 type Configuration struct {

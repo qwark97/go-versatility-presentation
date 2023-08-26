@@ -24,13 +24,11 @@ func main() {
 	go func() {
 		if err := s.Start(); err != nil {
 			log.Error(fmt.Sprintf("scheduler failed: %v", err))
+			panic(err)
 		}
 	}()
 
 	p := peripherals.New(ctx, s, flagsConf, log)
-	if err := p.Initialize(); err != nil {
-		log.Error(fmt.Sprintf("peripherals initialization failed: %v", err))
-	}
 
 	httpServer := server.New(p, flagsConf, log)
 	if err := httpServer.Start(); err != nil {

@@ -149,7 +149,7 @@ func (s Server) getConfiguration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if configuration.ID != id {
-		s.log.Info("failed to find configuration by ID: %s", id)
+		s.log.Error(fmt.Sprintf("failed to find configuration by ID: %s", id))
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}

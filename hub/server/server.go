@@ -122,7 +122,7 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 	err = s.peripherals.Add(ctx, configuration)
 	if err != nil {
 		s.log.Error(fmt.Sprintf("failed to add new configration entity: %v", err))
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)

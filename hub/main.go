@@ -29,9 +29,8 @@ func main() {
 		}
 	}()
 
-	fileStorage := storage.New(flagsConf, log)
-	p := peripherals.New(ctx, s, fileStorage, log)
-
+	fs := storage.New(flagsConf, log)
+	p := peripherals.New(ctx, s, fs, log)
 	httpServer := server.New(p, flagsConf, log)
 	if err := httpServer.Start(); err != nil {
 		arg := slog.Any("error", err.Error())

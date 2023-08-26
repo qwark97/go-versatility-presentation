@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/qwark97/go-versatility-presentation/hub/peripherals/model"
+	"github.com/qwark97/go-versatility-presentation/hub/peripherals"
 )
 
 const (
@@ -27,19 +27,21 @@ var (
 	getConfigurationPath    = path.Join(apiPath, "configuration/{id}")
 	deleteConfigurationPath = path.Join(apiPath, "configuration/{id}")
 	verifyConfigurationPath = path.Join(apiPath, "configuration/{id}/verify")
-	reloadConfigurationPath = path.Join(apiPath, "configuration/reload")
+	reloadConfigurationPath = path.Join(apiPath, "configurations/reload")
 	readDataSourcePath      = path.Join(apiPath, "data-source/{id}")
 )
 
+//go:generate mockery --name Peripherals --case underscore --with-expecter
 type Peripherals interface {
-	All(ctx context.Context) ([]model.Configuration, error)
-	Add(ctx context.Context, configuration model.Configuration) error
-	ByID(ctx context.Context, id uuid.UUID) (model.Configuration, error)
+	All(ctx context.Context) ([]peripherals.Configuration, error)
+	Add(ctx context.Context, configuration peripherals.Configuration) error
+	ByID(ctx context.Context, id uuid.UUID) (peripherals.Configuration, error)
 	DeleteOne(ctx context.Context, id uuid.UUID) error
 	Verify(ctx context.Context, id uuid.UUID) (bool, error)
 	Reload(ctx context.Context) error
 }
 
+//go:generate mockery --name Conf --case underscore --with-expecter
 type Conf interface {
 	Addr() string
 	RequestTimeout() time.Duration
@@ -52,9 +54,9 @@ type Server struct {
 	log  *slog.Logger
 }
 
-func New(peripherals Peripherals, conf Conf, log *slog.Logger) Server {
+func New(per Peripherals, conf Conf, log *slog.Logger) Server {
 	return Server{
-		peripherals: peripherals,
+		peripherals: per,
 		conf:        conf,
 		log:         log,
 	}
@@ -111,7 +113,7 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
-	var configuration model.Configuration
+	var configuration peripherals.Configuration
 	err := json.NewDecoder(r.Body).Decode(&configuration)
 	if err != nil {
 		s.log.Error(fmt.Sprintf("failed to read request body: %v", err))
@@ -204,9 +206,7 @@ func (s Server) verifyConfiguration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := struct {
-		Success bool `json:"success"`
-	}{}
+	response := VerifyResponse{}
 	response.Success = ok
 
 	err = json.NewEncoder(w).Encode(response)

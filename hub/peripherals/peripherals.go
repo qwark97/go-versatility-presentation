@@ -12,7 +12,6 @@ import (
 	"slices"
 
 	"github.com/google/uuid"
-	"github.com/qwark97/go-versatility-presentation/hub/peripherals/model"
 )
 
 type Scheduler interface{}
@@ -65,7 +64,7 @@ func (p Peripherals) absPath() (string, error) {
 	return absDir, err
 }
 
-func (p Peripherals) All(ctx context.Context) ([]model.Configuration, error) {
+func (p Peripherals) All(ctx context.Context) ([]Configuration, error) {
 	configurations, err := p.readConfigurations()
 	if err != nil {
 		p.log.Error(fmt.Sprintf("failed to read configurations: %v", err))
@@ -75,7 +74,7 @@ func (p Peripherals) All(ctx context.Context) ([]model.Configuration, error) {
 	return configurations, nil
 }
 
-func (p Peripherals) Add(ctx context.Context, configuration model.Configuration) error {
+func (p Peripherals) Add(ctx context.Context, configuration Configuration) error {
 	err := p.assureDir()
 	if err != nil {
 		return err
@@ -94,8 +93,8 @@ func (p Peripherals) Add(ctx context.Context, configuration model.Configuration)
 	return p.saveConfigurations(configurations)
 }
 
-func (p Peripherals) ByID(ctx context.Context, id uuid.UUID) (model.Configuration, error) {
-	var notFound model.Configuration
+func (p Peripherals) ByID(ctx context.Context, id uuid.UUID) (Configuration, error) {
+	var notFound Configuration
 
 	configurations, err := p.readConfigurations()
 	if err != nil {
@@ -118,7 +117,7 @@ func (p Peripherals) DeleteOne(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	configurations = slices.DeleteFunc(configurations, func(c model.Configuration) bool { return c.ID == id })
+	configurations = slices.DeleteFunc(configurations, func(c Configuration) bool { return c.ID == id })
 
 	return p.saveConfigurations(configurations)
 }
@@ -131,7 +130,7 @@ func (p Peripherals) Reload(ctx context.Context) error {
 	return nil
 }
 
-func (p Peripherals) readConfigurations() ([]model.Configuration, error) {
+func (p Peripherals) readConfigurations() ([]Configuration, error) {
 	absPath, err := p.absPath()
 	if err != nil {
 		return nil, err
@@ -142,7 +141,7 @@ func (p Peripherals) readConfigurations() ([]model.Configuration, error) {
 		return nil, err
 	}
 
-	var container []model.Configuration
+	var container []Configuration
 	err = json.Unmarshal(data, &container)
 	if err != nil {
 		p.log.Error(fmt.Sprintf("failed to unmarshal data: %v", err))
@@ -152,7 +151,7 @@ func (p Peripherals) readConfigurations() ([]model.Configuration, error) {
 	return container, nil
 }
 
-func (p Peripherals) saveConfigurations(configurations []model.Configuration) error {
+func (p Peripherals) saveConfigurations(configurations []Configuration) error {
 	absPath, err := p.absPath()
 	if err != nil {
 		return err

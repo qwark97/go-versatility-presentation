@@ -1,4 +1,4 @@
-package model
+package peripherals
 
 import "github.com/google/uuid"
 

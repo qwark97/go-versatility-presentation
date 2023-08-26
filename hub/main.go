@@ -27,7 +27,10 @@ func main() {
 		}
 	}()
 
-	p := peripherals.New(ctx, s, log)
+	p := peripherals.New(ctx, s, flagsConf, log)
+	if err := p.Initialize(); err != nil {
+		log.Error(fmt.Sprintf("peripherals initialization failed: %v", err))
+	}
 
 	httpServer := server.New(p, flagsConf, log)
 	if err := httpServer.Start(); err != nil {

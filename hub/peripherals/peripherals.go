@@ -19,11 +19,19 @@ var stubbedConfs = []model.Configuration{
 
 type Scheduler interface{}
 
+type Conf interface {
+	Path() string
+}
+
 type Peripherals struct {
 }
 
-func New(ctx context.Context, scheduler Scheduler, log *slog.Logger) Peripherals {
+func New(ctx context.Context, scheduler Scheduler, conf Conf, log *slog.Logger) Peripherals {
 	return Peripherals{}
+}
+
+func (p Peripherals) Initialize() error {
+	return nil
 }
 
 func (p Peripherals) All(ctx context.Context) ([]model.Configuration, error) {

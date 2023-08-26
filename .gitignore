@@ -6,3 +6,6 @@ main
 
 # conf file
 .hub
+
+# tests
+coverage.html

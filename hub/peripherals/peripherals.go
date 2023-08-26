@@ -2,70 +2,42 @@ package peripherals
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
-	"path"
-	"path/filepath"
 	"slices"
 
 	"github.com/google/uuid"
+	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 )
 
 type Scheduler interface{}
 
-type Conf interface {
-	Path() string
+type Storage interface {
+	AssureDir() error
+	SaveConfigurations(configurations []storage.Configuration) error
+	ReadConfigurations() ([]storage.Configuration, error)
 }
 
 type Peripherals struct {
 	ctx       context.Context
 	scheduler Scheduler
-	conf      Conf
+	storage   Storage
 	log       *slog.Logger
 }
 
-func New(ctx context.Context, scheduler Scheduler, conf Conf, log *slog.Logger) Peripherals {
+func New(ctx context.Context, scheduler Scheduler, storage Storage, log *slog.Logger) Peripherals {
 	return Peripherals{
 		ctx:       ctx,
 		scheduler: scheduler,
-		conf:      conf,
+		storage:   storage,
 		log:       log,
 	}
 }
 
-func (p Peripherals) assureDir() error {
-	absPath, err := p.absPath()
-	if err != nil {
-		return err
-	}
-	absDir := path.Dir(absPath)
-
-	_, err = os.Stat(absDir)
-	if !errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
-
-	err = os.MkdirAll(absDir, 0755)
-	if err != nil {
-		p.log.Error("failed to create dirs tree")
-		return err
-	}
-	return nil
-}
-
-func (p Peripherals) absPath() (string, error) {
-	absDir, err := filepath.Abs(p.conf.Path())
-	if err != nil {
-		p.log.Error("failed to get absolute path")
-	}
-	return absDir, err
-}
-
-func (p Peripherals) All(ctx context.Context) ([]Configuration, error) {
-	configurations, err := p.readConfigurations()
+func (p Peripherals) All(ctx context.Context) ([]storage.Configuration, error) {
+	configurations, err := p.storage.ReadConfigurations()
 	if err != nil {
 		p.log.Error(fmt.Sprintf("failed to read configurations: %v", err))
 		return nil, err
@@ -74,13 +46,13 @@ func (p Peripherals) All(ctx context.Context) ([]Configuration, error) {
 	return configurations, nil
 }
 
-func (p Peripherals) Add(ctx context.Context, configuration Configuration) error {
-	err := p.assureDir()
+func (p Peripherals) Add(ctx context.Context, configuration storage.Configuration) error {
+	err := p.storage.AssureDir()
 	if err != nil {
 		return err
 	}
 
-	configurations, err := p.readConfigurations()
+	configurations, err := p.storage.ReadConfigurations()
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return err
@@ -90,13 +62,13 @@ func (p Peripherals) Add(ctx context.Context, configuration Configuration) error
 	configuration.ID = uuid.New()
 	configurations = append(configurations, configuration)
 
-	return p.saveConfigurations(configurations)
+	return p.storage.SaveConfigurations(configurations)
 }
 
-func (p Peripherals) ByID(ctx context.Context, id uuid.UUID) (Configuration, error) {
-	var notFound Configuration
+func (p Peripherals) ByID(ctx context.Context, id uuid.UUID) (storage.Configuration, error) {
+	var notFound storage.Configuration
 
-	configurations, err := p.readConfigurations()
+	configurations, err := p.storage.ReadConfigurations()
 	if err != nil {
 		p.log.Error(fmt.Sprintf("failed to read configurations: %v", err))
 		return notFound, err
@@ -111,15 +83,15 @@ func (p Peripherals) ByID(ctx context.Context, id uuid.UUID) (Configuration, err
 	return notFound, nil
 }
 func (p Peripherals) DeleteOne(ctx context.Context, id uuid.UUID) error {
-	configurations, err := p.readConfigurations()
+	configurations, err := p.storage.ReadConfigurations()
 	if err != nil {
 		p.log.Error(fmt.Sprintf("failed to read configurations: %v", err))
 		return err
 	}
 
-	configurations = slices.DeleteFunc(configurations, func(c Configuration) bool { return c.ID == id })
+	configurations = slices.DeleteFunc(configurations, func(c storage.Configuration) bool { return c.ID == id })
 
-	return p.saveConfigurations(configurations)
+	return p.storage.SaveConfigurations(configurations)
 }
 
 func (p Peripherals) Verify(ctx context.Context, id uuid.UUID) (bool, error) {
@@ -128,40 +100,4 @@ func (p Peripherals) Verify(ctx context.Context, id uuid.UUID) (bool, error) {
 
 func (p Peripherals) Reload(ctx context.Context) error {
 	return nil
-}
-
-func (p Peripherals) readConfigurations() ([]Configuration, error) {
-	absPath, err := p.absPath()
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := os.ReadFile(absPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var container []Configuration
-	err = json.Unmarshal(data, &container)
-	if err != nil {
-		p.log.Error(fmt.Sprintf("failed to unmarshal data: %v", err))
-		return nil, err
-	}
-
-	return container, nil
-}
-
-func (p Peripherals) saveConfigurations(configurations []Configuration) error {
-	absPath, err := p.absPath()
-	if err != nil {
-		return err
-	}
-
-	data, err := json.MarshalIndent(configurations, "", "\t")
-	if err != nil {
-		p.log.Error(fmt.Sprintf("failed to marshal data: %v", err))
-		return err
-	}
-
-	return os.WriteFile(absPath, data, 0755)
 }

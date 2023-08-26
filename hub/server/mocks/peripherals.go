@@ -5,8 +5,9 @@ package mocks
 import (
 	context "context"
 
-	peripherals "github.com/qwark97/go-versatility-presentation/hub/peripherals"
 	mock "github.com/stretchr/testify/mock"
+
+	storage "github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 
 	uuid "github.com/google/uuid"
 )
@@ -25,11 +26,11 @@ func (_m *Peripherals) EXPECT() *Peripherals_Expecter {
 }
 
 // Add provides a mock function with given fields: ctx, configuration
-func (_m *Peripherals) Add(ctx context.Context, configuration peripherals.Configuration) error {
+func (_m *Peripherals) Add(ctx context.Context, configuration storage.Configuration) error {
 	ret := _m.Called(ctx, configuration)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, peripherals.Configuration) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, storage.Configuration) error); ok {
 		r0 = rf(ctx, configuration)
 	} else {
 		r0 = ret.Error(0)
@@ -45,14 +46,14 @@ type Peripherals_Add_Call struct {
 
 // Add is a helper method to define mock.On call
 //   - ctx context.Context
-//   - configuration peripherals.Configuration
+//   - configuration storage.Configuration
 func (_e *Peripherals_Expecter) Add(ctx interface{}, configuration interface{}) *Peripherals_Add_Call {
 	return &Peripherals_Add_Call{Call: _e.mock.On("Add", ctx, configuration)}
 }
 
-func (_c *Peripherals_Add_Call) Run(run func(ctx context.Context, configuration peripherals.Configuration)) *Peripherals_Add_Call {
+func (_c *Peripherals_Add_Call) Run(run func(ctx context.Context, configuration storage.Configuration)) *Peripherals_Add_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(peripherals.Configuration))
+		run(args[0].(context.Context), args[1].(storage.Configuration))
 	})
 	return _c
 }
@@ -62,25 +63,25 @@ func (_c *Peripherals_Add_Call) Return(_a0 error) *Peripherals_Add_Call {
 	return _c
 }
 
-func (_c *Peripherals_Add_Call) RunAndReturn(run func(context.Context, peripherals.Configuration) error) *Peripherals_Add_Call {
+func (_c *Peripherals_Add_Call) RunAndReturn(run func(context.Context, storage.Configuration) error) *Peripherals_Add_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // All provides a mock function with given fields: ctx
-func (_m *Peripherals) All(ctx context.Context) ([]peripherals.Configuration, error) {
+func (_m *Peripherals) All(ctx context.Context) ([]storage.Configuration, error) {
 	ret := _m.Called(ctx)
 
-	var r0 []peripherals.Configuration
+	var r0 []storage.Configuration
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]peripherals.Configuration, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) ([]storage.Configuration, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []peripherals.Configuration); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) []storage.Configuration); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]peripherals.Configuration)
+			r0 = ret.Get(0).([]storage.Configuration)
 		}
 	}
 
@@ -111,29 +112,29 @@ func (_c *Peripherals_All_Call) Run(run func(ctx context.Context)) *Peripherals_
 	return _c
 }
 
-func (_c *Peripherals_All_Call) Return(_a0 []peripherals.Configuration, _a1 error) *Peripherals_All_Call {
+func (_c *Peripherals_All_Call) Return(_a0 []storage.Configuration, _a1 error) *Peripherals_All_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Peripherals_All_Call) RunAndReturn(run func(context.Context) ([]peripherals.Configuration, error)) *Peripherals_All_Call {
+func (_c *Peripherals_All_Call) RunAndReturn(run func(context.Context) ([]storage.Configuration, error)) *Peripherals_All_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ByID provides a mock function with given fields: ctx, id
-func (_m *Peripherals) ByID(ctx context.Context, id uuid.UUID) (peripherals.Configuration, error) {
+func (_m *Peripherals) ByID(ctx context.Context, id uuid.UUID) (storage.Configuration, error) {
 	ret := _m.Called(ctx, id)
 
-	var r0 peripherals.Configuration
+	var r0 storage.Configuration
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (peripherals.Configuration, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (storage.Configuration, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) peripherals.Configuration); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) storage.Configuration); ok {
 		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(peripherals.Configuration)
+		r0 = ret.Get(0).(storage.Configuration)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -164,12 +165,12 @@ func (_c *Peripherals_ByID_Call) Run(run func(ctx context.Context, id uuid.UUID)
 	return _c
 }
 
-func (_c *Peripherals_ByID_Call) Return(_a0 peripherals.Configuration, _a1 error) *Peripherals_ByID_Call {
+func (_c *Peripherals_ByID_Call) Return(_a0 storage.Configuration, _a1 error) *Peripherals_ByID_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Peripherals_ByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (peripherals.Configuration, error)) *Peripherals_ByID_Call {
+func (_c *Peripherals_ByID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (storage.Configuration, error)) *Peripherals_ByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

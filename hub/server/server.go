@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/qwark97/go-versatility-presentation/hub/peripherals"
+	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 )
 
 const (
@@ -33,9 +33,9 @@ var (
 
 //go:generate mockery --name Peripherals --case underscore --with-expecter
 type Peripherals interface {
-	All(ctx context.Context) ([]peripherals.Configuration, error)
-	Add(ctx context.Context, configuration peripherals.Configuration) error
-	ByID(ctx context.Context, id uuid.UUID) (peripherals.Configuration, error)
+	All(ctx context.Context) ([]storage.Configuration, error)
+	Add(ctx context.Context, configuration storage.Configuration) error
+	ByID(ctx context.Context, id uuid.UUID) (storage.Configuration, error)
 	DeleteOne(ctx context.Context, id uuid.UUID) error
 	Verify(ctx context.Context, id uuid.UUID) (bool, error)
 	Reload(ctx context.Context) error
@@ -113,7 +113,7 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
-	var configuration peripherals.Configuration
+	var configuration storage.Configuration
 	err := json.NewDecoder(r.Body).Decode(&configuration)
 	if err != nil {
 		s.log.Error(fmt.Sprintf("failed to read request body: %v", err))

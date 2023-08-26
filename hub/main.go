@@ -8,6 +8,7 @@ import (
 
 	"github.com/qwark97/go-versatility-presentation/hub/flags"
 	"github.com/qwark97/go-versatility-presentation/hub/peripherals"
+	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 	"github.com/qwark97/go-versatility-presentation/hub/scheduler"
 	"github.com/qwark97/go-versatility-presentation/hub/server"
 )
@@ -28,7 +29,8 @@ func main() {
 		}
 	}()
 
-	p := peripherals.New(ctx, s, flagsConf, log)
+	fileStorage := storage.New(flagsConf, log)
+	p := peripherals.New(ctx, s, fileStorage, log)
 
 	httpServer := server.New(p, flagsConf, log)
 	if err := httpServer.Start(); err != nil {

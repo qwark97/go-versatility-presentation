@@ -1,4 +1,4 @@
-package peripherals
+package storage
 
 import "github.com/google/uuid"
 

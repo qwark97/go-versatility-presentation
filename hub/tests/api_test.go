@@ -11,7 +11,7 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/qwark97/go-versatility-presentation/hub/peripherals"
+	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 	"github.com/qwark97/go-versatility-presentation/hub/server"
 	"github.com/qwark97/go-versatility-presentation/hub/server/mocks"
 	"github.com/stretchr/testify/assert"
@@ -54,7 +54,7 @@ func (s Suite) TestShouldReceiveAllConfigurations() {
 	assertion := assert.New(s.T())
 
 	// given
-	expectedConfigurations := []peripherals.Configuration{
+	expectedConfigurations := []storage.Configuration{
 		{
 			ID: uuid.MustParse("eda1a0ca-12a3-4d3e-97e6-5baa0c5a1b93"),
 		},
@@ -74,7 +74,7 @@ func (s Suite) TestShouldReceiveAllConfigurations() {
 
 	// then
 	assertion.Nil(err)
-	var actualResponse []peripherals.Configuration
+	var actualResponse []storage.Configuration
 	err = json.NewDecoder(resp.Body).Decode(&actualResponse)
 	assertion.Nil(err)
 	assertion.Equal(expectedStatusCode, resp.StatusCode)
@@ -86,7 +86,7 @@ func (s Suite) TestShouldAddConfiguration() {
 
 	// given
 	id := uuid.MustParse("eda1a0ca-12a3-4d3e-97e6-5baa0c5a1b93")
-	expectedConfiguration := peripherals.Configuration{
+	expectedConfiguration := storage.Configuration{
 		ID: id,
 	}
 	expectedStatusCode := http.StatusOK
@@ -110,7 +110,7 @@ func (s Suite) TestShouldGetConfiguration() {
 	// given
 	id := "eda1a0ca-12a3-4d3e-97e6-5baa0c5a1b93"
 	data := bytes.NewBuffer([]byte(fmt.Sprintf(`{"id":"%s"}`, id)))
-	expectedConfiguration := peripherals.Configuration{
+	expectedConfiguration := storage.Configuration{
 		ID: uuid.MustParse(id),
 	}
 	expectedStatusCode := http.StatusCreated

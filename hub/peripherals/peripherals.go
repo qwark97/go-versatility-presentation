@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"slices"
 
@@ -95,7 +96,32 @@ func (p Peripherals) DeleteOne(ctx context.Context, id uuid.UUID) error {
 }
 
 func (p Peripherals) Verify(ctx context.Context, id uuid.UUID) (bool, error) {
-	return true, nil
+	configuration, err := p.ByID(ctx, id)
+	if err != nil || configuration.ID != id {
+		return false, err
+	}
+
+	client := http.DefaultClient
+	req, err := http.NewRequest(configuration.Method, configuration.Addr, nil)
+	if err != nil {
+		return false, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			p.log.Error("failed to close body: %v", err)
+		}
+	}()
+
+	validStatus := resp.StatusCode-http.StatusOK < 100
+	hasLength := resp.ContentLength > 0
+
+	return validStatus && hasLength, nil
 }
 
 func (p Peripherals) Reload(ctx context.Context) error {

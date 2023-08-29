@@ -14,6 +14,10 @@ func (l Logger) Info(format string, args ...any) {
 	l.log.Printf("INFO "+format, args...)
 }
 
+func (l Logger) Warning(format string, args ...any) {
+	l.log.Printf("WARNING "+format, args...)
+}
+
 func (l Logger) Error(format string, args ...any) {
 	l.log.Printf("ERROR "+format, args...)
 }

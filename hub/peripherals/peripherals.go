@@ -10,9 +10,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/qwark97/go-versatility-presentation/hub/logger"
 	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
+	"golang.org/x/exp/slices"
 )
 
-type Scheduler interface{}
+type Scheduler interface {
+	Add(configuration storage.Configuration) error
+	Remove(id uuid.UUID)
+}
 
 type Storage interface {
 	AssureDir() error
@@ -59,7 +63,18 @@ func (p Peripherals) Add(ctx context.Context, configuration storage.Configuratio
 		}
 	}
 
+	foundIdx := slices.IndexFunc(configurations, func(c storage.Configuration) bool { return c.ID == configuration.ID })
+	if foundIdx >= 0 {
+		return fmt.Errorf("configuration already exists")
+	}
+
 	configuration.ID = uuid.New()
+
+	err = p.scheduler.Add(configuration)
+	if err != nil {
+		return err
+	}
+
 	configurations = append(configurations, configuration)
 
 	return p.storage.SaveConfigurations(configurations)
@@ -89,15 +104,14 @@ func (p Peripherals) DeleteOne(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	l := len(configurations)
-	newConfigurations := make([]storage.Configuration, l, l)
-	for _, configuration := range configurations {
-		if configuration.ID != id {
-			newConfigurations = append(newConfigurations, configuration)
-		}
-	}
+	configurations = slices.DeleteFunc(configurations, func(c storage.Configuration) bool { return id == c.ID })
 
-	return p.storage.SaveConfigurations(configurations)
+	p.storage.SaveConfigurations(configurations)
+	if err != nil {
+		return err
+	}
+	p.scheduler.Remove(id)
+	return nil
 }
 
 func (p Peripherals) Verify(ctx context.Context, id uuid.UUID) (bool, error) {

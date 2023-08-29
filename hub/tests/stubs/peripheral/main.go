@@ -1,13 +1,14 @@
 package main
 
 import (
-	"log/slog"
 	"math/rand"
 	"net/http"
+
+	"github.com/qwark97/go-versatility-presentation/hub/logger"
 )
 
 func main() {
-	log := slog.Default()
+	log := logger.New()
 	http.HandleFunc("/peripheral/temp", func(w http.ResponseWriter, r *http.Request) {
 		log.Info("received request: /peripheral/temp")
 		stubbedTemps := []string{"21.5", "22", "21.7"}

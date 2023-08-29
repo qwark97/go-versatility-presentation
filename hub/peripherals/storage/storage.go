@@ -8,7 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"log/slog"
+	"github.com/qwark97/go-versatility-presentation/hub/logger"
 )
 
 type Conf interface {
@@ -17,10 +17,10 @@ type Conf interface {
 
 type Storage struct {
 	conf Conf
-	log  *slog.Logger
+	log  logger.Logger
 }
 
-func New(conf Conf, log *slog.Logger) Storage {
+func New(conf Conf, log logger.Logger) Storage {
 	return Storage{
 		conf: conf,
 		log:  log,

@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"path"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/qwark97/go-versatility-presentation/hub/logger"
 	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 )
 
@@ -51,10 +51,10 @@ type Server struct {
 	peripherals Peripherals
 
 	conf Conf
-	log  *slog.Logger
+	log  logger.Logger
 }
 
-func New(per Peripherals, conf Conf, log *slog.Logger) Server {
+func New(per Peripherals, conf Conf, log logger.Logger) Server {
 	return Server{
 		peripherals: per,
 		conf:        conf,
@@ -73,20 +73,19 @@ func (s Server) Start() error {
 	s.addEndpoint(m, verifyConfigurationPath, s.verifyConfiguration, http.MethodPost)
 	s.addEndpoint(m, readDataSourcePath, s.readData, http.MethodGet)
 
-	s.log.Info("starts listening on: " + s.conf.Addr())
+	s.log.Info("starts listening on: %s", s.conf.Addr())
 	return http.ListenAndServe(s.conf.Addr(), m)
 }
 
 func (s Server) addEndpoint(mux *mux.Router, path string, handler func(http.ResponseWriter, *http.Request), methods ...string) {
 	mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
-		s.log.Info(r.Method + " " + r.RequestURI)
+		s.log.Info("%s %s", r.Method, r.RequestURI)
 		handler(w, r)
 	}).Methods(methods...)
 
 	for _, m := range methods {
-		msg := fmt.Sprintf("registered handler for: %s %s", m, path)
-		s.log.Info(msg)
+		s.log.Info("registered handler for: %s %s", m, path)
 	}
 }
 
@@ -96,14 +95,14 @@ func (s Server) getConfigurations(w http.ResponseWriter, r *http.Request) {
 
 	configurations, err := s.peripherals.All(ctx)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to get all configurations: %v", err))
+		s.log.Error("failed to get all configurations: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(configurations)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to send response: %v", err))
+		s.log.Error("failed to send response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -116,14 +115,14 @@ func (s Server) addConfiguration(w http.ResponseWriter, r *http.Request) {
 	var configuration storage.Configuration
 	err := json.NewDecoder(r.Body).Decode(&configuration)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to read request body: %v", err))
+		s.log.Error("failed to read request body: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = s.peripherals.Add(ctx, configuration)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to add new configration entity: %v", err))
+		s.log.Error("failed to add new configration entity: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -138,27 +137,27 @@ func (s Server) getConfiguration(w http.ResponseWriter, r *http.Request) {
 	idVar := vars["id"]
 	id, err := uuid.Parse(idVar)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("invalid id: %v", err))
+		s.log.Error("invalid id: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	configuration, err := s.peripherals.ByID(ctx, id)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to get configuration: %v", err))
+		s.log.Error("failed to get configuration: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if configuration.ID != id {
-		s.log.Error(fmt.Sprintf("failed to find configuration by ID: %s", id))
+		s.log.Error("failed to find configuration by ID: %s", id)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	err = json.NewEncoder(w).Encode(configuration)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to send response: %v", err))
+		s.log.Error("failed to send response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -172,14 +171,14 @@ func (s Server) deleteConfiguration(w http.ResponseWriter, r *http.Request) {
 	idVar := vars["id"]
 	id, err := uuid.Parse(idVar)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("invalid id: %v", err))
+		s.log.Error("invalid id: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = s.peripherals.DeleteOne(ctx, id)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to delete configuration: %v", err))
+		s.log.Error("failed to delete configuration: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -194,14 +193,14 @@ func (s Server) verifyConfiguration(w http.ResponseWriter, r *http.Request) {
 	idVar := vars["id"]
 	id, err := uuid.Parse(idVar)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("invalid id: %v", err))
+		s.log.Error("invalid id: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	ok, err := s.peripherals.Verify(ctx, id)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to verify configuration: %v", err))
+		s.log.Error("failed to verify configuration: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -211,7 +210,7 @@ func (s Server) verifyConfiguration(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to send response: %v", err))
+		s.log.Error("failed to send response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -223,7 +222,7 @@ func (s Server) reloadConfiguration(w http.ResponseWriter, r *http.Request) {
 
 	err := s.peripherals.Reload(ctx)
 	if err != nil {
-		s.log.Error(fmt.Sprintf("failed to reload configurations: %v", err))
+		s.log.Error("failed to reload configurations: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

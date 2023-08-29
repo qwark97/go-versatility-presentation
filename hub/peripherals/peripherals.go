@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
-	"slices"
 
 	"github.com/google/uuid"
+	"github.com/qwark97/go-versatility-presentation/hub/logger"
 	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 )
 
@@ -25,10 +24,10 @@ type Peripherals struct {
 	ctx       context.Context
 	scheduler Scheduler
 	storage   Storage
-	log       *slog.Logger
+	log       logger.Logger
 }
 
-func New(ctx context.Context, scheduler Scheduler, storage Storage, log *slog.Logger) Peripherals {
+func New(ctx context.Context, scheduler Scheduler, storage Storage, log logger.Logger) Peripherals {
 	return Peripherals{
 		ctx:       ctx,
 		scheduler: scheduler,
@@ -90,7 +89,13 @@ func (p Peripherals) DeleteOne(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	configurations = slices.DeleteFunc(configurations, func(c storage.Configuration) bool { return c.ID == id })
+	l := len(configurations)
+	newConfigurations := make([]storage.Configuration, l, l)
+	for _, configuration := range configurations {
+		if configuration.ID != id {
+			newConfigurations = append(newConfigurations, configuration)
+		}
+	}
 
 	return p.storage.SaveConfigurations(configurations)
 }

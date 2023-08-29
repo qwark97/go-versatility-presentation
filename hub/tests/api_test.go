@@ -8,9 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"log/slog"
-
 	"github.com/google/uuid"
+	"github.com/qwark97/go-versatility-presentation/hub/logger"
 	"github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 	"github.com/qwark97/go-versatility-presentation/hub/server"
 	"github.com/qwark97/go-versatility-presentation/hub/server/mocks"
@@ -23,14 +22,14 @@ type Suite struct {
 	suite.Suite
 	peripheralsMock *mocks.Peripherals
 	confMock        *mocks.Conf
-	log             *slog.Logger
+	log             logger.Logger
 }
 
 func TestSuite(t *testing.T) {
 	s := Suite{
 		peripheralsMock: mocks.NewPeripherals(t),
 		confMock:        mocks.NewConf(t),
-		log:             slog.Default(),
+		log:             logger.New(),
 	}
 	suite.Run(t, &s)
 }

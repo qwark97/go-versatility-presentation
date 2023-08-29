@@ -3,13 +3,13 @@ package scheduler
 import (
 	"context"
 
-	"log/slog"
+	"github.com/qwark97/go-versatility-presentation/hub/logger"
 )
 
 type Scheduler struct {
 }
 
-func New(ctx context.Context, log *slog.Logger) Scheduler {
+func New(ctx context.Context, log logger.Logger) Scheduler {
 	return Scheduler{}
 }
 

@@ -1,20 +1,20 @@
 # Design specification
 
 ## Acceptance criteria
-- [ ] service reads data from peripherals (e.g. some microcontrollers) according to internal scheduler
-- [ ] service stores data in sqllite DB
+- [x] service reads data from peripherals (e.g. some microcontrollers) according to internal scheduler
+- [x] service stores data in memory
 - [ ] service sends data to Home Assistant
-- [ ] all above (source of data, where it should be send, how often etc.) is based on the configuration stored as JSON file
+- [x] all above (source of data, where it should be send, how often etc.) is based on the configuration stored as JSON file
 - [x] configuration should be maintainable through API
-- [ ] service supports hot-reloading of the configuration
+- [x] service supports hot-reloading of the configuration
 - [x] service allows to verify if configuration works as expected
-- [ ] service allows to read data read by the data source
+- [x] service allows to read data read by the data source
 - ...
 
 ## Comunication
-Incoming communication goes thgough HTTP calls. 
+Incoming communication goes through HTTP calls. 
 Outcoming communication goes only to Home Assistant therefore it depends on how HA accepts data and will be clarified later.
-Communication with data sources (e.g. microcontrollers) depends on the source itself, therefore will be defined through the configuration
+Communication with data sources (e.g. microcontrollers) goes through HTTP calls
 
 ## API
 
@@ -146,14 +146,14 @@ Allows to get all read data from given data source
 - `{id}` - ID of the configuration, valid UUID string
 #### Returns:
 HTTP 200
-```json
-[
-    {} // object, depends on what configuration defines
-]
+```text
+"<readData><unit> (<description>)"
 ```
-HTTP 404
+HTTP 400
+When passed `id` is invalid `UUID`
 ```json
-{
-    "msg": string
-}
+```
+HTTP 500
+When failed to read last reading of given periferal
+```json
 ```

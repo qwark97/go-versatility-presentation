@@ -26,14 +26,18 @@ func New(conf Conf, log logger.Logger) *InMemStorage {
 	}
 }
 
-func (ims *InMemStorage) SaveLastReading(id uuid.UUID, data any) error {
+func (ims *InMemStorage) SaveLastReading(id uuid.UUID, data string) error {
 	ims.state.Store(id, data)
 	return nil
 }
-func (ims *InMemStorage) ReadLastReading(id uuid.UUID) (any, error) {
+func (ims *InMemStorage) ReadLastReading(id uuid.UUID) (string, error) {
 	val, present := ims.state.Load(id)
 	if !present {
-		return nil, fmt.Errorf("missing value with id: %s", id)
+		return "", fmt.Errorf("missing value with id: %s", id)
 	}
-	return val, nil
+	data, ok := val.(string)
+	if !ok {
+		return "", fmt.Errorf("invalid value with id: %s", id)
+	}
+	return data, nil
 }

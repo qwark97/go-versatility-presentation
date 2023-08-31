@@ -39,7 +39,7 @@ type Peripherals interface {
 	DeleteOne(ctx context.Context, id uuid.UUID) error
 	Verify(ctx context.Context, id uuid.UUID) (bool, error)
 	Reload(ctx context.Context) error
-	LastReading(ctx context.Context, id uuid.UUID) (any, error)
+	LastReading(ctx context.Context, id uuid.UUID) (string, error)
 }
 
 //go:generate mockery --name Conf --case underscore --with-expecter
@@ -243,14 +243,14 @@ func (s Server) getLastReading(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapValue, err := s.peripherals.LastReading(ctx, id)
+	data, err := s.peripherals.LastReading(ctx, id)
 	if err != nil {
 		s.log.Error("failed to get configuration: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(mapValue)
+	_, err = w.Write([]byte(data))
 	if err != nil {
 		s.log.Error("failed to send response: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

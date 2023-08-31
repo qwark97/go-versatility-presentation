@@ -219,20 +219,18 @@ func (_c *Peripherals_DeleteOne_Call) RunAndReturn(run func(context.Context, uui
 }
 
 // LastReading provides a mock function with given fields: ctx, id
-func (_m *Peripherals) LastReading(ctx context.Context, id uuid.UUID) (interface{}, error) {
+func (_m *Peripherals) LastReading(ctx context.Context, id uuid.UUID) (string, error) {
 	ret := _m.Called(ctx, id)
 
-	var r0 interface{}
+	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (interface{}, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (string, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) interface{}); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) string); ok {
 		r0 = rf(ctx, id)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
@@ -263,12 +261,12 @@ func (_c *Peripherals_LastReading_Call) Run(run func(ctx context.Context, id uui
 	return _c
 }
 
-func (_c *Peripherals_LastReading_Call) Return(_a0 interface{}, _a1 error) *Peripherals_LastReading_Call {
+func (_c *Peripherals_LastReading_Call) Return(_a0 string, _a1 error) *Peripherals_LastReading_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *Peripherals_LastReading_Call) RunAndReturn(run func(context.Context, uuid.UUID) (interface{}, error)) *Peripherals_LastReading_Call {
+func (_c *Peripherals_LastReading_Call) RunAndReturn(run func(context.Context, uuid.UUID) (string, error)) *Peripherals_LastReading_Call {
 	_c.Call.Return(run)
 	return _c
 }

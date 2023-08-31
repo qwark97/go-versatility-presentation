@@ -16,7 +16,7 @@ import (
 type Scheduler interface {
 	Add(configuration storage.Configuration) error
 	Remove(id uuid.UUID)
-	LastReading(id uuid.UUID) (any, error)
+	LastReading(id uuid.UUID) (string, error)
 }
 
 type Storage interface {
@@ -162,7 +162,7 @@ func (p Peripherals) Reload(ctx context.Context) error {
 	return nil
 }
 
-func (p Peripherals) LastReading(ctx context.Context, id uuid.UUID) (any, error) {
+func (p Peripherals) LastReading(ctx context.Context, id uuid.UUID) (string, error) {
 	data, err := p.scheduler.LastReading(id)
 	return data, err
 }

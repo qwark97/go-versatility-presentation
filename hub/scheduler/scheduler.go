@@ -13,8 +13,8 @@ import (
 )
 
 type Storage interface {
-	SaveLastReading(id uuid.UUID, data any) error
-	ReadLastReading(id uuid.UUID) (any, error)
+	SaveLastReading(id uuid.UUID, data string) error
+	ReadLastReading(id uuid.UUID) (string, error)
 }
 
 type Scheduler struct {
@@ -138,6 +138,6 @@ func (s *Scheduler) processData(ctx context.Context, e entry) error {
 	return nil
 }
 
-func (s *Scheduler) LastReading(id uuid.UUID) (any, error) {
+func (s *Scheduler) LastReading(id uuid.UUID) (string, error) {
 	return s.storage.ReadLastReading(id)
 }

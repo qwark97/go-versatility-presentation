@@ -218,6 +218,61 @@ func (_c *Peripherals_DeleteOne_Call) RunAndReturn(run func(context.Context, uui
 	return _c
 }
 
+// LastReading provides a mock function with given fields: ctx, id
+func (_m *Peripherals) LastReading(ctx context.Context, id uuid.UUID) (interface{}, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 interface{}
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (interface{}, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) interface{}); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(interface{})
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Peripherals_LastReading_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LastReading'
+type Peripherals_LastReading_Call struct {
+	*mock.Call
+}
+
+// LastReading is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id uuid.UUID
+func (_e *Peripherals_Expecter) LastReading(ctx interface{}, id interface{}) *Peripherals_LastReading_Call {
+	return &Peripherals_LastReading_Call{Call: _e.mock.On("LastReading", ctx, id)}
+}
+
+func (_c *Peripherals_LastReading_Call) Run(run func(ctx context.Context, id uuid.UUID)) *Peripherals_LastReading_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(uuid.UUID))
+	})
+	return _c
+}
+
+func (_c *Peripherals_LastReading_Call) Return(_a0 interface{}, _a1 error) *Peripherals_LastReading_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Peripherals_LastReading_Call) RunAndReturn(run func(context.Context, uuid.UUID) (interface{}, error)) *Peripherals_LastReading_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Reload provides a mock function with given fields: ctx
 func (_m *Peripherals) Reload(ctx context.Context) error {
 	ret := _m.Called(ctx)

@@ -28,7 +28,7 @@ var (
 	deleteConfigurationPath = path.Join(apiPath, "configuration/{id}")
 	verifyConfigurationPath = path.Join(apiPath, "configuration/{id}/verify")
 	reloadConfigurationPath = path.Join(apiPath, "configurations/reload")
-	readDataSourcePath      = path.Join(apiPath, "data-source/{id}")
+	readDataSourcePath      = path.Join(apiPath, "last-reading/{id}")
 )
 
 //go:generate mockery --name Peripherals --case underscore --with-expecter
@@ -39,6 +39,7 @@ type Peripherals interface {
 	DeleteOne(ctx context.Context, id uuid.UUID) error
 	Verify(ctx context.Context, id uuid.UUID) (bool, error)
 	Reload(ctx context.Context) error
+	LastReading(ctx context.Context, id uuid.UUID) (any, error)
 }
 
 //go:generate mockery --name Conf --case underscore --with-expecter
@@ -71,7 +72,7 @@ func (s Server) Start() error {
 	s.addEndpoint(m, deleteConfigurationPath, s.deleteConfiguration, http.MethodDelete)
 	s.addEndpoint(m, getConfigurationsPath, s.getConfigurations, http.MethodGet)
 	s.addEndpoint(m, verifyConfigurationPath, s.verifyConfiguration, http.MethodPost)
-	s.addEndpoint(m, readDataSourcePath, s.readData, http.MethodGet)
+	s.addEndpoint(m, readDataSourcePath, s.getLastReading, http.MethodGet)
 
 	s.log.Info("starts listening on: %s", s.conf.Addr())
 	return http.ListenAndServe(s.conf.Addr(), m)
@@ -229,6 +230,30 @@ func (s Server) reloadConfiguration(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s Server) readData(w http.ResponseWriter, r *http.Request) {
+func (s Server) getLastReading(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
+	defer cancel()
 
+	vars := mux.Vars(r)
+	idVar := vars["id"]
+	id, err := uuid.Parse(idVar)
+	if err != nil {
+		s.log.Error("invalid id: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	mapValue, err := s.peripherals.LastReading(ctx, id)
+	if err != nil {
+		s.log.Error("failed to get configuration: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(mapValue)
+	if err != nil {
+		s.log.Error("failed to send response: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

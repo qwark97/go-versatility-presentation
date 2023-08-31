@@ -3,6 +3,8 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +13,8 @@ import (
 )
 
 type Storage interface {
+	SaveLastReading(id uuid.UUID, data any) error
+	ReadLastReading(id uuid.UUID) (any, error)
 }
 
 type Scheduler struct {
@@ -18,7 +22,8 @@ type Scheduler struct {
 	storage Storage
 	log     logger.Logger
 
-	state map[uuid.UUID]entry
+	state      map[uuid.UUID]entry
+	httpClient *http.Client
 }
 
 type entry struct {
@@ -28,10 +33,14 @@ type entry struct {
 }
 
 func New(ctx context.Context, storage Storage, log logger.Logger) *Scheduler {
+	client := &http.Client{
+		Timeout: time.Second * 5,
+	}
 	return &Scheduler{
-		ctx:     ctx,
-		storage: storage,
-		log:     log,
+		ctx:        ctx,
+		storage:    storage,
+		log:        log,
+		httpClient: client,
 	}
 }
 
@@ -75,14 +84,15 @@ func (s *Scheduler) worker(e entry) {
 
 	ticker := time.NewTicker(d)
 
-	func() {
+	process := func() {
 		ctx, cancel := context.WithTimeout(e.ctx, d)
 		defer cancel()
 		err := s.processData(ctx, e)
 		if err != nil {
-			s.log.Warning("failed to process data for entry with id: %s", e.conf.ID)
+			s.log.Warning("failed to process data for entry with id %s: %v", e.conf.ID, err)
 		}
-	}()
+	}
+	process()
 
 	for {
 		select {
@@ -90,19 +100,44 @@ func (s *Scheduler) worker(e entry) {
 			s.log.Info("scheduler for entry with id: %s has been stopped", e.conf.ID)
 			return
 		case <-ticker.C:
-			func() {
-				ctx, cancel := context.WithTimeout(e.ctx, d)
-				defer cancel()
-				err := s.processData(ctx, e)
-				if err != nil {
-					s.log.Warning("failed to process data for entry with id: %s", e.conf.ID)
-				}
-			}()
+			process()
 		}
 	}
 }
 
 func (s *Scheduler) processData(ctx context.Context, e entry) error {
-	s.log.Info("PUK (%s)", e.conf.ID)
+	request, err := http.NewRequest(e.conf.Method, e.conf.Addr, nil)
+	if err != nil {
+		return err
+	}
+
+	response, err := s.httpClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	var (
+		data      string
+		container []byte
+	)
+	container, err = io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	if len(container) == 0 {
+		return fmt.Errorf("endpoint have not returned any data")
+	}
+
+	data = fmt.Sprintf("%s%s (%s)", string(container), e.conf.Unit, e.conf.Description)
+	err = s.storage.SaveLastReading(e.conf.ID, data)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (s *Scheduler) LastReading(id uuid.UUID) (any, error) {
+	return s.storage.ReadLastReading(id)
 }

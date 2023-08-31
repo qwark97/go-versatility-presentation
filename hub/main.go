@@ -24,6 +24,11 @@ func main() {
 	s := scheduler.New(ctx, sqlLiteS, log)
 	fileS := fileStorage.New(flagsConf, log)
 	p := peripherals.New(ctx, s, fileS, log)
+	err := p.Reload(ctx)
+	if err != nil {
+		log.Error("failed to initially reload peripherals: %v", err)
+		return
+	}
 
 	httpServer := server.New(p, flagsConf, log)
 	if err := httpServer.Start(); err != nil {

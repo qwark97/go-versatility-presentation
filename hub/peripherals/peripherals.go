@@ -144,5 +144,19 @@ func (p Peripherals) Verify(ctx context.Context, id uuid.UUID) (bool, error) {
 }
 
 func (p Peripherals) Reload(ctx context.Context) error {
+	configurations, err := p.storage.ReadConfigurations()
+	if err != nil {
+		p.log.Error(fmt.Sprintf("failed to read configurations: %v", err))
+		return err
+	}
+
+	for _, configuration := range configurations {
+		p.scheduler.Remove(configuration.ID)
+		err := p.scheduler.Add(configuration)
+		if err != nil {
+			p.log.Warning(fmt.Sprintf("failed to add again configurations: %v", err))
+		}
+	}
+
 	return nil
 }

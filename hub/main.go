@@ -8,7 +8,7 @@ import (
 	"github.com/qwark97/go-versatility-presentation/hub/peripherals"
 	fileStorage "github.com/qwark97/go-versatility-presentation/hub/peripherals/storage"
 	"github.com/qwark97/go-versatility-presentation/hub/scheduler"
-	sqlLiteStorage "github.com/qwark97/go-versatility-presentation/hub/scheduler/storage"
+	inMemStorage "github.com/qwark97/go-versatility-presentation/hub/scheduler/storage"
 	"github.com/qwark97/go-versatility-presentation/hub/server"
 )
 
@@ -20,8 +20,8 @@ func main() {
 
 	log := logger.New()
 
-	sqlLiteS := sqlLiteStorage.New(flagsConf, log)
-	s := scheduler.New(ctx, sqlLiteS, log)
+	inMemS := inMemStorage.New(flagsConf, log)
+	s := scheduler.New(ctx, inMemS, log)
 	fileS := fileStorage.New(flagsConf, log)
 	p := peripherals.New(ctx, s, fileS, log)
 	err := p.Reload(ctx)

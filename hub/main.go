@@ -26,8 +26,7 @@ func main() {
 	p := peripherals.New(ctx, s, fileS, log)
 	err := p.Reload(ctx)
 	if err != nil {
-		log.Error("failed to initially reload peripherals: %v", err)
-		return
+		log.Info("did not find initial peripherals")
 	}
 
 	httpServer := server.New(p, flagsConf, log)

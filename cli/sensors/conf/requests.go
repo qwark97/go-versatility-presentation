@@ -10,7 +10,7 @@ import (
 func apiRequestWithResponse[T any](method, uri string, requestBody io.Reader, responseContainer *T) error {
 	client := http.DefaultClient
 
-	request, err := http.NewRequest(method, uri, nil)
+	request, err := http.NewRequest(method, uri, requestBody)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func apiRequestWithResponse[T any](method, uri string, requestBody io.Reader, re
 func apiRequest(method, uri string, requestBody io.Reader) error {
 	client := http.DefaultClient
 
-	request, err := http.NewRequest(method, uri, nil)
+	request, err := http.NewRequest(method, uri, requestBody)
 	if err != nil {
 		return err
 	}

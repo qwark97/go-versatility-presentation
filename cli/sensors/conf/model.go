@@ -10,3 +10,7 @@ type configuration struct {
 	Description string    `json:"description"`
 	Unit        string    `json:"unit"`
 }
+
+type verification struct {
+	Success bool `json:"success"`
+}

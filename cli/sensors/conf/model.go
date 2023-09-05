@@ -2,7 +2,7 @@ package conf
 
 import "github.com/google/uuid"
 
-type Configuration struct {
+type configuration struct {
 	ID          uuid.UUID `json:"id"`
 	Method      string    `json:"method"`
 	Addr        string    `json:"addr"`

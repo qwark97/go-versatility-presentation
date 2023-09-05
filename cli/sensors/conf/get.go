@@ -18,7 +18,7 @@ func get(ctx *cli.Context, presenter Presenter) error {
 
 	switch id {
 	case "":
-		var configurations []Configuration
+		var configurations []configuration
 		uri := fmt.Sprintf("http://%s/api/v1/configurations", addr)
 		err := apiRequestWithResponse(http.MethodGet, uri, nil, &configurations)
 		if err != nil {
@@ -26,7 +26,7 @@ func get(ctx *cli.Context, presenter Presenter) error {
 		}
 		presenter.Show(configurations)
 	default:
-		var configuration Configuration
+		var configuration configuration
 		uri := fmt.Sprintf("http://%s/api/v1/configuration/%s", addr, id)
 		err := apiRequestWithResponse(http.MethodGet, uri, nil, &configuration)
 		if err != nil {

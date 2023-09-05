@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/urfave/cli/v2"
 )
@@ -14,29 +15,21 @@ func get(ctx *cli.Context, presenter Presenter) error {
 
 	switch stringID {
 	case "":
+		var configurations []Configuration
 		uri := fmt.Sprintf("http://%s/api/v1/configurations", ctx.String("addr"))
-		configurations, err := getConfigurations(uri)
+		err := apiRequest(http.MethodGet, uri, nil, &configurations)
 		if err != nil {
 			return err
 		}
 		presenter.Show(configurations)
 	default:
+		var configuration Configuration
 		uri := fmt.Sprintf("http://%s/api/v1/configuration/%s", ctx.String("addr"), ctx.String("id"))
-		configuration, err := getConfiguration(uri)
+		err := apiRequest(http.MethodGet, uri, nil, &configuration)
 		if err != nil {
 			return err
 		}
 		presenter.Show(configuration)
 	}
 	return nil
-}
-
-func getConfiguration(uri string) (any, error) {
-	fmt.Println("showConfiguration ID", uri)
-	return nil, nil
-}
-
-func getConfigurations(uri string) ([]any, error) {
-	fmt.Println("showConfigurations")
-	return []any{nil}, nil
 }

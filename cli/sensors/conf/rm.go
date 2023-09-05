@@ -20,8 +20,8 @@ func rm(ctx *cli.Context, presenter Presenter) error {
 		uri := fmt.Sprintf("http://%s/api/v1/configuration/%s", addr, id)
 		return apiRequest(http.MethodDelete, uri, nil)
 	} else {
+		var configurations []configuration
 		uri := fmt.Sprintf("http://%s/api/v1/configurations", addr)
-		var configurations []Configuration
 		err := apiRequestWithResponse(http.MethodGet, uri, nil, &configurations)
 		if err != nil {
 			return err

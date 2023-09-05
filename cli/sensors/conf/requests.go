@@ -36,3 +36,24 @@ func apiRequestWithResponse[T any](method, uri string, requestBody io.Reader, re
 	}
 	return nil
 }
+
+func apiRequest[T any](method, uri string, requestBody io.Reader) error {
+	client := http.DefaultClient
+
+	request, err := http.NewRequest(method, uri, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode%200 >= 100 {
+		return fmt.Errorf("invalid response status code: %s", resp.Status)
+	}
+
+	return nil
+}

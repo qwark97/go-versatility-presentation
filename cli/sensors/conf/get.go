@@ -8,15 +8,18 @@ import (
 )
 
 func get(ctx *cli.Context, presenter Presenter) error {
-	stringID := ctx.String("id")
-	if !ctx.Bool("all") && stringID == "" {
+	id := ctx.String("id")
+	all := ctx.Bool("all")
+	addr := ctx.String("addr")
+
+	if !all && id == "" {
 		return fmt.Errorf("either -all or -id is required")
 	}
 
-	switch stringID {
+	switch id {
 	case "":
 		var configurations []Configuration
-		uri := fmt.Sprintf("http://%s/api/v1/configurations", ctx.String("addr"))
+		uri := fmt.Sprintf("http://%s/api/v1/configurations", addr)
 		err := apiRequest(http.MethodGet, uri, nil, &configurations)
 		if err != nil {
 			return err
@@ -24,7 +27,7 @@ func get(ctx *cli.Context, presenter Presenter) error {
 		presenter.Show(configurations)
 	default:
 		var configuration Configuration
-		uri := fmt.Sprintf("http://%s/api/v1/configuration/%s", ctx.String("addr"), ctx.String("id"))
+		uri := fmt.Sprintf("http://%s/api/v1/configuration/%s", addr, id)
 		err := apiRequest(http.MethodGet, uri, nil, &configuration)
 		if err != nil {
 			return err

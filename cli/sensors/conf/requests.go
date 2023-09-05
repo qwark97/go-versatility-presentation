@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func apiRequest[T any](method, uri string, requestBody io.Reader, responseContainer *T) error {
+func apiRequestWithResponse[T any](method, uri string, requestBody io.Reader, responseContainer *T) error {
 	client := http.DefaultClient
 
 	request, err := http.NewRequest(method, uri, nil)

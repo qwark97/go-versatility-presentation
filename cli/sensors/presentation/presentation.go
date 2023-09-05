@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -12,5 +13,9 @@ func NewStdout() *Stdout {
 }
 
 func (p *Stdout) Show(data any) {
-	fmt.Println(data)
+	resp, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(resp))
 }

@@ -37,7 +37,7 @@ func apiRequestWithResponse[T any](method, uri string, requestBody io.Reader, re
 	return nil
 }
 
-func apiRequest[T any](method, uri string, requestBody io.Reader) error {
+func apiRequest(method, uri string, requestBody io.Reader) error {
 	client := http.DefaultClient
 
 	request, err := http.NewRequest(method, uri, nil)

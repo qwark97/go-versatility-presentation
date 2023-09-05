@@ -3,7 +3,6 @@ package conf
 import (
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/urfave/cli/v2"
 )
 
@@ -18,18 +17,8 @@ func Command(presenter Presenter) *cli.Command {
 			{
 				Name: "get",
 				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name: "id",
-						Action: func(ctx *cli.Context, s string) error {
-							if _, err := uuid.Parse(s); err != nil {
-								return fmt.Errorf("invalid -id flag: %s", err)
-							}
-							return nil
-						},
-					},
-					&cli.BoolFlag{
-						Name: "all",
-					},
+					idFlag(),
+					allFlag(),
 				},
 				Action: func(ctx *cli.Context) error {
 					stringID := ctx.String("id")
@@ -58,22 +47,15 @@ func Command(presenter Presenter) *cli.Command {
 			},
 			{
 				Name: "add",
+				Action: func(ctx *cli.Context) error {
+					return nil
+				},
 			},
 			{
 				Name: "rm",
 				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name: "id",
-						Action: func(ctx *cli.Context, s string) error {
-							if _, err := uuid.Parse(s); err != nil {
-								return fmt.Errorf("invalid -id flag: %s", err)
-							}
-							return nil
-						},
-					},
-					&cli.BoolFlag{
-						Name: "all",
-					},
+					idFlag(),
+					allFlag(),
 				},
 				Action: func(ctx *cli.Context) error {
 					id := ctx.String("id")
@@ -101,16 +83,7 @@ func Command(presenter Presenter) *cli.Command {
 			{
 				Name: "verify",
 				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:     "id",
-						Required: true,
-						Action: func(ctx *cli.Context, s string) error {
-							if _, err := uuid.Parse(s); err != nil {
-								return fmt.Errorf("invalid -id flag: %s", err)
-							}
-							return nil
-						},
-					},
+					idRequiredFlag(),
 				},
 				Action: func(ctx *cli.Context) error {
 					id := ctx.String("id")

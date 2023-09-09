@@ -68,12 +68,14 @@ func readLastData(ctx context.Context, uri string) (<-chan string, <-chan error)
 		defer close(dataCh)
 		defer close(errCh)
 
+		ticker := time.NewTicker(time.Second)
+
 		for {
 			select {
 			case <-ctx.Done():
 				errCh <- ctx.Err()
 				return
-			default:
+			case <-ticker.C:
 				func() {
 					ctx, cancel := context.WithTimeout(ctx, time.Second)
 					defer cancel()
@@ -102,7 +104,6 @@ func readLastData(ctx context.Context, uri string) (<-chan string, <-chan error)
 					}
 					dataCh <- string(data)
 				}()
-				time.Sleep(time.Second)
 			}
 		}
 	}(ctx)

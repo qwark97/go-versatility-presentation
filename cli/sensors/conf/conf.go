@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"github.com/qwark97/go-versatility-presentation/cli/flags"
 	"github.com/urfave/cli/v2"
 )
 
@@ -15,8 +16,8 @@ func Command(presenter Presenter) *cli.Command {
 			{
 				Name: "get",
 				Flags: []cli.Flag{
-					idFlag(),
-					allFlag(),
+					flags.IDFlag(),
+					flags.AllFlag(),
 				},
 				Action: func(ctx *cli.Context) error {
 					return get(ctx, presenter)
@@ -31,8 +32,8 @@ func Command(presenter Presenter) *cli.Command {
 			{
 				Name: "rm",
 				Flags: []cli.Flag{
-					idFlag(),
-					allFlag(),
+					flags.IDFlag(),
+					flags.AllFlag(),
 				},
 				Action: func(ctx *cli.Context) error {
 					return rm(ctx, presenter)
@@ -41,7 +42,7 @@ func Command(presenter Presenter) *cli.Command {
 			{
 				Name: "verify",
 				Flags: []cli.Flag{
-					idRequiredFlag(),
+					flags.IDRequiredFlag(),
 				},
 				Action: func(ctx *cli.Context) error {
 					return verify(ctx, presenter)

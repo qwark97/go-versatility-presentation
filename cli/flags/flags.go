@@ -1,4 +1,4 @@
-package conf
+package flags
 
 import (
 	"fmt"
@@ -7,7 +7,22 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func idFlag() *cli.StringFlag {
+const (
+	defaultAddr = "localhost:9090"
+)
+
+func AddrFlag() *cli.StringFlag {
+	return &cli.StringFlag{
+		Name:        "addr",
+		Category:    "network",
+		DefaultText: defaultAddr,
+		Value:       defaultAddr,
+		Usage:       "allows to change default `ADDR` of the HUB",
+		Aliases:     []string{"a"},
+	}
+}
+
+func IDFlag() *cli.StringFlag {
 	return &cli.StringFlag{
 		Name: "id",
 		Action: func(ctx *cli.Context, s string) error {
@@ -19,7 +34,7 @@ func idFlag() *cli.StringFlag {
 	}
 }
 
-func idRequiredFlag() *cli.StringFlag {
+func IDRequiredFlag() *cli.StringFlag {
 	return &cli.StringFlag{
 		Name:     "id",
 		Required: true,
@@ -32,7 +47,7 @@ func idRequiredFlag() *cli.StringFlag {
 	}
 }
 
-func allFlag() *cli.BoolFlag {
+func AllFlag() *cli.BoolFlag {
 	return &cli.BoolFlag{
 		Name: "all",
 	}

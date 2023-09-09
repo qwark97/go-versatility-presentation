@@ -234,6 +234,8 @@ func (s Server) getLastReading(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), s.conf.RequestTimeout())
 	defer cancel()
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	vars := mux.Vars(r)
 	idVar := vars["id"]
 	id, err := uuid.Parse(idVar)

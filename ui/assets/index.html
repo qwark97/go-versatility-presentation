@@ -19,16 +19,11 @@
     </body>
     <script>
         const timer = ms => new Promise(res => setTimeout(res, ms))
-        const f = () => {
-            temp = readTemperature()
-            console.log(temp)
-            document.getElementById("temperature").innerHTML = temp
-        }
 
         async function load () { 
             while (true) {
                 await timer(3000)
-                f()
+                readTemperature()
             }
         }
         load()

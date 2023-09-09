@@ -23,7 +23,24 @@ func readTemperature() js.Func {
 		if len(args) != 0 {
 			return "Invalid no of arguments passed"
 		}
-		temp, _ := calculateTemp()
+		temp, err := calculateTemp()
+		if err != nil {
+			return err.Error()
+		}
+
+		document := js.Global().Get("document")
+		if !document.Truthy() {
+			return "Unable to get document object"
+		}
+
+		tempPlaceholder := document.Call("getElementById", "temperature")
+		if !tempPlaceholder.Truthy() {
+			return "Unable to get output text area"
+		}
+
+		fmt.Println("temp", temp)
+		tempPlaceholder.Set("innerHTML", temp)
+
 		return temp
 	})
 

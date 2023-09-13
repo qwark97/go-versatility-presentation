@@ -14,7 +14,8 @@ func Command(presenter Presenter) *cli.Command {
 		Name: "conf",
 		Subcommands: []*cli.Command{
 			{
-				Name: "get",
+				Name:  "get",
+				Usage: "allows to read configuration by given ID",
 				Flags: []cli.Flag{
 					flags.IDFlag(),
 					flags.AllFlag(),
@@ -24,13 +25,15 @@ func Command(presenter Presenter) *cli.Command {
 				},
 			},
 			{
-				Name: "add",
+				Name:  "add",
+				Usage: "allows to add new configuration entity",
 				Action: func(ctx *cli.Context) error {
 					return add(ctx, presenter)
 				},
 			},
 			{
-				Name: "rm",
+				Name:  "rm",
+				Usage: "allows to remove configuration by given ID",
 				Flags: []cli.Flag{
 					flags.IDFlag(),
 					flags.AllFlag(),
@@ -40,7 +43,8 @@ func Command(presenter Presenter) *cli.Command {
 				},
 			},
 			{
-				Name: "verify",
+				Name:  "verify",
+				Usage: "allows to verify if all defined configurations are valid",
 				Flags: []cli.Flag{
 					flags.IDRequiredFlag(),
 				},

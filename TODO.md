@@ -1,6 +1,0 @@
-- [ ] Introduce hub communication with Home Assistant via webhook
-- [ ] Introduce dth
-- [x] Implement cli
-- [ ] Add descriptions into CLI
-- [ ] Add basic UI
-- [ ] Refactor

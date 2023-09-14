@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	defaultAddr       = "localhost:8080"
+	defaultAddr       = "localhost:9001"
 	defaultReqTimeout = time.Duration(10 * time.Second)
 	defaultConfPath   = "./.hub/peripherals.json"
 )
